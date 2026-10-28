@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
 
+// Chaque noeud contient une valeur et deux pointeurs vers ses enfants.
 struct Noeud {
     int valeur;
     Noeud* gauche;
@@ -13,6 +14,7 @@ struct Noeud {
     }
 };
 
+// Insere la valeur a la bonne place en respectant l'ordre de l'arbre.
 Noeud* inserer(Noeud* racine, int valeur) {
     if (racine == nullptr) {
         return new Noeud(valeur);
@@ -29,6 +31,7 @@ Noeud* inserer(Noeud* racine, int valeur) {
     return racine;
 }
 
+// Le parcours gauche-racine-droite affiche les valeurs dans l'ordre croissant.
 void afficherEnOrdre(Noeud* racine) {
     if (racine != nullptr) {
         afficherEnOrdre(racine->gauche);
@@ -37,6 +40,7 @@ void afficherEnOrdre(Noeud* racine) {
     }
 }
 
+// Libere tous les noeuds, en commencant par les enfants.
 void libererArbre(Noeud* racine) {
     if (racine != nullptr) {
         libererArbre(racine->gauche);
@@ -50,6 +54,7 @@ int main() {
     int choix;
     int valeur;
 
+    // Le menu reste affiche jusqu'a ce que l'utilisateur choisisse de quitter.
     do {
         cout << "\n--- Arbre de recherche binaire ---\n";
         cout << "1. Inserer une valeur\n";
