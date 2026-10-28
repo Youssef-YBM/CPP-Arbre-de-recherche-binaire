@@ -1,0 +1,333 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage[margin=1.5cm,includeheadfoot]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{pgfplots}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{fancyhdr}
+
+\definecolor{bleu}{HTML}{1557A0}
+\definecolor{bleuclair}{HTML}{EAF2FB}
+\definecolor{griscode}{HTML}{F4F6F8}
+\definecolor{vert}{HTML}{16806B}
+\pgfplotsset{compat=1.18}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\headheight}{13pt}
+\titleformat{\section}{\large\bfseries\color{bleu}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{bleu}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{6pt}{2pt}
+\titlespacing*{\subsection}{0pt}{4pt}{2pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{bleu}Benchmark -- Arbre de recherche binaire}
+\fancyhead[R]{\small ERRAMI Youssef}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{bleu}\bfseries,
+    commentstyle=\color{vert},
+    stringstyle=\color{red!65!black},
+    backgroundcolor=\color{griscode},
+    frame=single,
+    rulecolor=\color{bleuclair},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    showstringspaces=false,
+    breaklines=true,
+    tabsize=4,
+    xleftmargin=4pt,
+    framexleftmargin=4pt,
+    aboveskip=4pt,
+    belowskip=4pt
+}
+
+\begin{document}
+
+% PAGE 1 : contexte et résultats mesurés
+\begin{center}
+    {\LARGE\bfseries\color{bleu} Étude expérimentale d'un ABR}\\[-1pt]
+    {\large Benchmark de l'insertion, de la recherche et de la suppression}\\[2pt]
+    {\normalsize ERRAMI Youssef \quad -- \quad Programmation C++}
+\end{center}
+\vspace{-3pt}
+\hrule
+
+\section{Résumé}
+Ce travail étudie un arbre de recherche binaire (ABR) implémenté en C++.
+Le programme mesure le temps total d'insertion, de recherche et de
+suppression pour neuf tailles d'entrée, comprises entre $1\,000$ et
+$1\,000\,000$ valeurs. Toutes les valeurs testées ont été retrouvées.
+Les résultats sont des mesures réelles d'une exécution par taille, et non
+des moyennes de plusieurs répétitions.
+
+\section{Configuration utilisée}
+\renewcommand{\arraystretch}{1.03}
+\begin{tabular}{@{}>{\bfseries}p{3.1cm}p{12cm}@{}}
+Ordinateur & MSI Stealth GS66 12UGS\\
+Processeur & Intel Core i7-12700H, 14 cœurs\\
+Carte graphique & NVIDIA GeForce RTX 3070 Ti\\
+Mémoire vive & 16 Go DDR5\\
+Langage & C++17 ; les calculs de l'ABR sont exécutés sur le processeur.
+\end{tabular}
+
+\section{Protocole de mesure}
+Le programme construit les entiers de $0$ à $n-1$, les mélange, puis
+chronomètre les trois opérations avec \texttt{std::chrono::steady\_clock}.
+La recherche porte sur les mêmes valeurs que celles insérées : ce sont
+donc des recherches réussies. Les durées sont des temps cumulés en
+millisecondes pour les $n$ opérations. Le parcours écrit dans
+\texttt{output.txt} est effectué hors des intervalles chronométrés.
+
+Le programme a été compilé sans option d'optimisation explicite avec
+\texttt{g++ -std=c++17 -Wall -Wextra -pedantic}. Les neuf tailles ont été
+testées successivement dans le même lancement ; chaque taille correspond
+à un nouvel arbre et à un ordre de valeurs mélangé.
+
+\section{Mesures obtenues}
+\small
+\renewcommand{\arraystretch}{1.12}
+\begin{center}
+\begin{tabular}{@{}r r r r r@{}}
+\toprule
+\textbf{Taille $n$} & \textbf{Recherches réussies} &
+\textbf{Insertion (ms)} & \textbf{Recherche (ms)} &
+\textbf{Suppression (ms)}\\
+\midrule
+1\,000      & 1\,000 / 1\,000      & 0,126   & 0,064   & 0,202\\
+3\,333      & 3\,333 / 3\,333      & 0,920   & 0,624   & 0,677\\
+10\,000     & 10\,000 / 10\,000    & 3,253   & 1,518   & 1,839\\
+50\,000     & 50\,000 / 50\,000    & 12,830  & 6,824   & 9,671\\
+100\,000    & 100\,000 / 100\,000  & 28,445  & 20,958  & 28,501\\
+250\,000    & 250\,000 / 250\,000  & 127,151 & 94,481  & 115,091\\
+500\,000    & 500\,000 / 500\,000  & 308,352 & 273,892 & 289,340\\
+777\,777    & 777\,777 / 777\,777  & 642,876 & 576,837 & 595,468\\
+1\,000\,000 & 1\,000\,000 / 1\,000\,000 & 975,218 & 845,118 & 909,071\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+% PAGE 2 : structure, insertion et recherche
+\section{Structure et règle de l'arbre}
+Chaque élément, appelé \emph{noeud}, contient une valeur et deux pointeurs :
+\texttt{gauche} et \texttt{droite}. Pour chaque noeud, toutes les valeurs
+du sous-arbre gauche sont plus petites que sa valeur et celles du sous-arbre
+droit sont plus grandes. Cette règle permet de choisir une seule branche
+à chaque étape d'une recherche.
+
+\begin{lstlisting}
+struct Noeud {
+    int valeur;
+    Noeud* gauche;
+    Noeud* droite;
+
+    Noeud(int nouvelleValeur) {
+        valeur = nouvelleValeur;
+        gauche = nullptr;
+        droite = nullptr;
+    }
+};
+\end{lstlisting}
+
+\section{Insertion}
+L'insertion commence à la racine. Si le pointeur courant est nul, on crée
+un nouveau noeud à cet emplacement. Sinon, on compare la valeur à insérer
+avec celle du noeud courant : une valeur plus petite continue à gauche,
+une valeur plus grande continue à droite. Dans cette implémentation, une
+valeur déjà présente n'est pas ajoutée une deuxième fois.
+
+\begin{lstlisting}
+Noeud* inserer(Noeud* racine, int valeur) {
+    if (racine == nullptr)
+        return new Noeud(valeur);
+
+    if (valeur < racine->valeur)
+        racine->gauche = inserer(racine->gauche, valeur);
+    else if (valeur > racine->valeur)
+        racine->droite = inserer(racine->droite, valeur);
+    else
+        cout << "Cette valeur existe deja dans l'arbre.\\n";
+
+    return racine;
+}
+\end{lstlisting}
+
+La fonction est récursive : chaque appel traite un niveau supplémentaire
+de l'arbre. Le pointeur de racine retourné permet de conserver la racine
+initiale, ou de recevoir le nouveau noeud lorsqu'on insère dans un arbre
+vide. Le benchmark génère des valeurs distinctes, donc le cas des doublons
+n'intervient pas dans ces mesures.
+
+\section{Recherche}
+La recherche compare la valeur cherchée au noeud courant. Une égalité
+signifie que la valeur est trouvée. Sinon, la comparaison dirige la
+recherche vers le sous-arbre gauche ou droit. Si le pointeur devient nul,
+la valeur n'existe pas dans l'arbre.
+
+\begin{lstlisting}
+bool rechercher(Noeud* racine, int valeur) {
+    if (racine == nullptr)
+        return false;
+    if (valeur == racine->valeur)
+        return true;
+    if (valeur < racine->valeur)
+        return rechercher(racine->gauche, valeur);
+    return rechercher(racine->droite, valeur);
+}
+\end{lstlisting}
+
+La recherche du test est favorable au sens où chaque requête correspond à
+une valeur présente. Le temps rapporté est le cumul de $n$ appels, dans
+l'ordre mélangé des valeurs, et non la durée d'une seule recherche. La
+suppression reprend ensuite cette même liste mélangée.
+
+\newpage
+% PAGE 3 : suppression, affichage et mesure
+\section{Suppression}
+La suppression conserve la règle de classement de l'ABR et distingue trois
+cas :
+\begin{enumerate}
+    \setlength{\itemsep}{0pt}
+    \item \textbf{Aucun enfant :} le noeud est supprimé et remplacé par nul.
+    \item \textbf{Un seul enfant :} le noeud est supprimé et son enfant prend
+    sa place.
+    \item \textbf{Deux enfants :} la valeur du noeud est remplacée par son
+    successeur, le minimum du sous-arbre droit ; ce successeur est ensuite
+    supprimé à son emplacement d'origine.
+\end{enumerate}
+
+\begin{lstlisting}
+Noeud* supprimer(Noeud* racine, int valeur) {
+    if (racine == nullptr) return nullptr;
+    if (valeur < racine->valeur)
+        racine->gauche = supprimer(racine->gauche, valeur);
+    else if (valeur > racine->valeur)
+        racine->droite = supprimer(racine->droite, valeur);
+    else if (racine->gauche == nullptr) {
+        Noeud* droite = racine->droite;
+        delete racine;
+        return droite;
+    } else if (racine->droite == nullptr) {
+        Noeud* gauche = racine->gauche;
+        delete racine;
+        return gauche;
+    } else {
+        Noeud* min = trouverMinimum(racine->droite);
+        racine->valeur = min->valeur;
+        racine->droite = supprimer(racine->droite, min->valeur);
+    }
+    return racine;
+}
+\end{lstlisting}
+
+\section{Affichage et gestion de la mémoire}
+Le parcours \emph{gauche--racine--droite} affiche les valeurs en ordre
+croissant. Pendant le test, le résultat est dirigé vers \texttt{output.txt}
+pour éviter d'imprimer jusqu'à un million de valeurs dans le terminal.
+Après le benchmark, les valeurs du test sont supprimées ; la fonction
+\texttt{libererArbre} libère également les noeuds restants avec \texttt{delete}.
+
+\section{Chronométrage}
+Pour chaque opération, le programme lit l'heure juste avant la boucle et
+juste après. La différence avec \texttt{steady\_clock} donne une durée
+monotone, exprimée en millisecondes. Les générations, le mélange et
+l'écriture du fichier ne sont pas inclus dans les intervalles chronométrés.
+En revanche, la création et la destruction des noeuds font partie des
+temps d'insertion et de suppression, comme dans le code testé.
+
+\newpage
+% PAGE 4 : graphe et interprétation
+\section{Comparaison graphique}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.96\textwidth,height=8.1cm,
+    xlabel={Nombre de valeurs insérées},
+    ylabel={Temps total pour $n$ opérations (ms)},
+    xmode=log,
+    xmin=900,xmax=1100000,
+    ymin=0,ymax=1100,
+    xtick={1000,10000,100000,1000000},
+    xticklabels={$1\,000$,$10\,000$,$100\,000$,$1\,000\,000$},
+    scaled y ticks=false,
+    ytick distance=200,
+    label style={font=\small},
+    tick label style={font=\small},
+    legend style={at={(0.5,-0.19)},anchor=north,legend columns=3,
+                  draw=none,font=\small},
+    grid=major,
+    grid style={bleuclair},
+    tick style={bleu},
+    clip=false
+]
+\addplot[very thick,bleu,mark=*,mark size=2.5pt] coordinates {
+    (1000,0.126) (3333,0.920) (10000,3.253) (50000,12.830)
+    (100000,28.445) (250000,127.151) (500000,308.352)
+    (777777,642.876) (1000000,975.218)
+};
+\addlegendentry{Insertion}
+\addplot[very thick,red!75!black,mark=square*,mark size=2.5pt] coordinates {
+    (1000,0.064) (3333,0.624) (10000,1.518) (50000,6.824)
+    (100000,20.958) (250000,94.481) (500000,273.892)
+    (777777,576.837) (1000000,845.118)
+};
+\addlegendentry{Recherche}
+\addplot[very thick,vert,mark=triangle*,mark size=2.8pt] coordinates {
+    (1000,0.202) (3333,0.677) (10000,1.839) (50000,9.671)
+    (100000,28.501) (250000,115.091) (500000,289.340)
+    (777777,595.468) (1000000,909.071)
+};
+\addlegendentry{Suppression}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\vspace{-3pt}
+\small
+\textbf{\color{bleu}Lecture :} l'axe horizontal est logarithmique pour
+montrer les tailles, très différentes, sur un même graphique. L'axe vertical
+reste linéaire. Les points correspondent aux mesures du tableau de la
+première page ; les lignes servent uniquement à guider la comparaison.
+
+\section{Interprétation et limites}
+Sur cette série, les durées augmentent globalement avec la taille de l'entrée.
+Pour un million de valeurs, l'insertion prend $975,218$ ms, la recherche
+$845,118$ ms et la suppression $909,071$ ms. À taille égale, la recherche
+est ici la plus rapide pour les grands tests. Une opération d'ABR dépend
+toutefois de la hauteur $h$ de l'arbre : son coût est $O(h)$. Un arbre
+équilibré donne une hauteur proche de $\log_2(n)$, tandis qu'un arbre très
+désequilibré peut atteindre une hauteur de l'ordre de $n$.
+
+Les valeurs sont mélangées, mais l'ABR n'est pas auto-équilibré. Les temps
+dépendent donc de l'ordre aléatoire, de l'environnement logiciel et de la
+charge de l'ordinateur. Une seule exécution par taille ne permet pas de
+calculer une moyenne ni de conclure à une loi de croissance exacte. Pour
+renforcer l'étude, répéter chaque taille plusieurs fois, puis comparer la
+médiane et la moyenne.
+
+\textbf{\color{bleu}À noter :} la carte graphique n'intervient pas dans cet
+algorithme séquentiel ; le benchmark sollicite principalement le processeur
+et la mémoire.
+
+\section{Reproduire le test}
+Depuis le dossier contenant le fichier C++ :
+\begin{lstlisting}[numbers=none]
+g++ -std=c++17 -Wall -Wextra -pedantic .\arbre_recherche_binaire.cpp -o .\arbre_recherche_binaire.exe
+.\arbre_recherche_binaire.exe
+\end{lstlisting}
+Dans le menu, choisir l'option \texttt{3}, saisir successivement les tailles
+du tableau, puis quitter avec \texttt{0}. Les temps peuvent varier d'un
+lancement à l'autre, puisque l'ordre des valeurs est mélangé aléatoirement.
+
+\end{document}
