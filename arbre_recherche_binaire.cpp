@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
@@ -90,11 +91,11 @@ Noeud* supprimer(Noeud* racine, int valeur) {
 }
 
 // Le parcours gauche-racine-droite affiche les valeurs dans l'ordre croissant.
-void afficherEnOrdre(Noeud* racine) {
+void afficherEnOrdre(Noeud* racine, ostream& sortie = cout) {
     if (racine != nullptr) {
-        afficherEnOrdre(racine->gauche);
-        cout << racine->valeur << " ";
-        afficherEnOrdre(racine->droite);
+        afficherEnOrdre(racine->gauche, sortie);
+        sortie << racine->valeur << " ";
+        afficherEnOrdre(racine->droite, sortie);
     }
 }
 
@@ -133,6 +134,23 @@ void testerPerformances(int taille) {
         }
     }
     auto finRecherche = chrono::steady_clock::now();
+
+    // Enregistre le parcours trie dans un fichier, sans inclure cette ecriture dans les mesures.
+    ofstream fichierSortie("output.txt");
+    if (!fichierSortie) {
+        cerr << "Erreur : impossible de creer le fichier output.txt.\n";
+    } else {
+        fichierSortie << "Valeurs de l'arbre de test (ordre croissant) :\n";
+        afficherEnOrdre(arbreTest, fichierSortie);
+        fichierSortie << "\n";
+        fichierSortie.close();
+
+        if (fichierSortie) {
+            cout << "Affichage de l'arbre enregistre dans output.txt.\n";
+        } else {
+            cerr << "Erreur : echec lors de l'ecriture dans output.txt.\n";
+        }
+    }
 
     auto debutSuppression = chrono::steady_clock::now();
     for (int valeur : valeurs) {
