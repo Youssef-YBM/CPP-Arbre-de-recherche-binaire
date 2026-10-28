@@ -338,6 +338,11 @@ Une seconde expérience compare la recherche binaire dans un
 Le menu propose deux ordres d'entrée : valeurs croissantes ou valeurs
 mélangées. Les requêtes utilisent le même ordre que les insertions dans
 chaque scénario. Le mélange est reproductible grâce à une graine fixe.
+Dans le menu, choisir l'option \texttt{4}, puis \texttt{1} pour l'ordre
+croissant ou \texttt{2} pour l'ordre aléatoire et saisir la taille du test.
+Les valeurs générées sont les entiers de $0$ à $n-1$. L'ordre d'insertion
+de \texttt{std::map} varie selon le scénario, mais le conteneur conserve
+dans les deux cas ses clés classées.
 
 Pour le vecteur, le temps de préparation comprend la copie des valeurs et
 leur tri ; le temps de recherche comprend $n$ appels à
@@ -394,9 +399,10 @@ valeurs.
 \begin{center}
 \begin{tabular}{@{}r l r r r r@{}}
 \toprule
-\textbf{$n$} & \textbf{Ordre} & \textbf{Préparation vecteur (ms)}
-& \textbf{Construction map (ms)} & \textbf{Recherche binaire (ms)}
-& \textbf{Recherche map (ms)}\\
+\textbf{$n$} & \textbf{Ordre} & \shortstack{\textbf{Préparation}\\\textbf{vecteur (ms)}}
+& \shortstack{\textbf{Construction}\\\textbf{map (ms)}}
+& \shortstack{\textbf{Recherche}\\\textbf{binaire (ms)}}
+& \shortstack{\textbf{Recherche}\\\textbf{map (ms)}}\\
 \midrule
 1\,000     & Croissant & 0,022   & 1,244    & 0,070   & 0,115\\
 1\,000     & Aléatoire & 0,058   & 0,236    & 0,091   & 0,132\\

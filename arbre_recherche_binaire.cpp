@@ -173,7 +173,7 @@ void testerPerformances(int taille) {
     libererArbre(arbreTest);
 }
 
-// Compare la recherche binaire dans un vecteur triee avec la recherche dans std::map.
+// Compare la recherche binaire dans un vecteur trie avec la recherche dans std::map.
 void comparerRecherches(int taille, bool ordreAleatoire) {
     vector<int> valeurs(taille);
     iota(valeurs.begin(), valeurs.end(), 0);
