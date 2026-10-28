@@ -1,6 +1,5 @@
-Commandes a copier-coller dans le terminal PowerShell, depuis le dossier du projet :
-
+# Compiler le programme (a executer depuis le dossier du projet)
 g++ -std=c++17 -Wall -Wextra -pedantic .\arbre_recherche_binaire.cpp -o .\arbre_recherche_binaire.exe
-.\arbre_recherche_binaire.exe
 
-Il faut que g++ (par exemple avec MinGW) soit installe et disponible dans le PATH.
+# Executer le programme
+.\arbre_recherche_binaire.exe
