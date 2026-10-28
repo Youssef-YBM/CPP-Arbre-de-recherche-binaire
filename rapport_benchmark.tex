@@ -330,4 +330,107 @@ Dans le menu, choisir l'option \texttt{3}, saisir successivement les tailles
 du tableau, puis quitter avec \texttt{0}. Les temps peuvent varier d'un
 lancement à l'autre, puisque l'ordre des valeurs est mélangé aléatoirement.
 
+\newpage
+% PAGE 5 : comparaison recherche binaire et std::map
+\section{Comparaison : recherche binaire et \texttt{std::map}}
+Une seconde expérience compare la recherche binaire dans un
+\texttt{std::vector} trié à la recherche par \texttt{std::map::find}.
+Le menu propose deux ordres d'entrée : valeurs croissantes ou valeurs
+mélangées. Les requêtes utilisent le même ordre que les insertions dans
+chaque scénario. Le mélange est reproductible grâce à une graine fixe.
+
+Pour le vecteur, le temps de préparation comprend la copie des valeurs et
+leur tri ; le temps de recherche comprend $n$ appels à
+\texttt{std::binary\_search}. Pour la map, le temps de construction comprend
+$n$ insertions dans un \texttt{std::map<int, bool>}, et le temps de recherche
+comprend $n$ appels à \texttt{find}. Les durées de construction et de
+recherche sont mesurées séparément. Chaque scénario a retrouvé toutes ses
+valeurs.
+
+\subsection{Temps de recherche}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.94\textwidth,height=6.5cm,
+    xlabel={Nombre de valeurs},
+    ylabel={Temps total de recherche (ms)},
+    xmode=log,ymode=log,
+    xmin=900,xmax=1100000,
+    xtick={1000,10000,100000,1000000},
+    xticklabels={$1\,000$,$10\,000$,$100\,000$,$1\,000\,000$},
+    scaled y ticks=false,
+    label style={font=\small},
+    tick label style={font=\small},
+    legend style={at={(0.5,-0.23)},anchor=north,legend columns=2,
+                  draw=none,font=\small},
+    grid=major,grid style={bleuclair},tick style={bleu}
+]
+\addplot[very thick,bleu,mark=*] coordinates {
+    (1000,0.070) (10000,1.318) (100000,8.437)
+    (500000,46.863) (1000000,102.142)
+};
+\addlegendentry{Recherche binaire, ordre croissant}
+\addplot[very thick,red!75!black,mark=square*] coordinates {
+    (1000,0.115) (10000,1.545) (100000,15.283)
+    (500000,86.097) (1000000,182.987)
+};
+\addlegendentry{\texttt{map}, ordre croissant}
+\addplot[very thick,vert,mark=triangle*] coordinates {
+    (1000,0.091) (10000,1.251) (100000,14.033)
+    (500000,89.380) (1000000,400.506)
+};
+\addlegendentry{Recherche binaire, ordre aléatoire}
+\addplot[very thick,orange!85!black,mark=diamond*] coordinates {
+    (1000,0.132) (10000,1.992) (100000,44.062)
+    (500000,572.895) (1000000,1681.062)
+};
+\addlegendentry{\texttt{map}, ordre aléatoire}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\vspace{-4pt}
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
+\begin{center}
+\begin{tabular}{@{}r l r r r r@{}}
+\toprule
+\textbf{$n$} & \textbf{Ordre} & \textbf{Préparation vecteur (ms)}
+& \textbf{Construction map (ms)} & \textbf{Recherche binaire (ms)}
+& \textbf{Recherche map (ms)}\\
+\midrule
+1\,000     & Croissant & 0,022   & 1,244    & 0,070   & 0,115\\
+1\,000     & Aléatoire & 0,058   & 0,236    & 0,091   & 0,132\\
+10\,000    & Croissant & 0,360   & 2,902    & 1,318   & 1,545\\
+10\,000    & Aléatoire & 0,723  & 3,595    & 1,251   & 1,992\\
+100\,000   & Croissant & 3,728   & 26,183   & 8,437   & 15,283\\
+100\,000   & Aléatoire & 8,796  & 40,967   & 14,033  & 44,062\\
+500\,000   & Croissant & 19,838  & 143,761  & 46,863  & 86,097\\
+500\,000   & Aléatoire & 52,344 & 456,767  & 89,380  & 572,895\\
+1\,000\,000 & Croissant & 44,081 & 306,567  & 102,142 & 182,987\\
+1\,000\,000 & Aléatoire & 115,485 & 1\,816,966 & 400,506 & 1\,681,062\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\normalsize
+\subsection{Interprétation}
+Dans ces mesures, le vecteur trié est plus rapide en recherche que
+\texttt{std::map} dans les deux ordres, en particulier pour le scénario
+aléatoire à un million d'éléments. La recherche binaire divise l'intervalle
+de recherche par deux à chaque comparaison et a une complexité
+$O(\log n)$. La recherche dans \texttt{std::map} est également
+$O(\log n)$, mais ses noeuds sont répartis dynamiquement et la navigation
+par pointeurs a un coût pratique plus élevé ici.
+
+La préparation du vecteur inclut le tri, mais ce coût n'est pas ajouté au
+temps de recherche du graphique. Le tableau permet donc de distinguer
+construction et requêtes. Pour une utilisation où les données sont
+construites une fois puis recherchées souvent, ces deux phases doivent
+être interprétées séparément. Les résultats restent ceux d'une exécution
+par scénario et peuvent varier avec le système et le compilateur.
+
+\textbf{\color{bleu}Compilation utilisée :}
+\texttt{g++ -std=c++17 -Wall -Wextra -pedantic} (sans option
+\texttt{-O} d'optimisation explicite).
+
 \end{document}

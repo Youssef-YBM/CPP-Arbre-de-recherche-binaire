@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <numeric>
 #include <random>
 #include <vector>
@@ -172,6 +173,77 @@ void testerPerformances(int taille) {
     libererArbre(arbreTest);
 }
 
+// Compare la recherche binaire dans un vecteur triee avec la recherche dans std::map.
+void comparerRecherches(int taille, bool ordreAleatoire) {
+    vector<int> valeurs(taille);
+    iota(valeurs.begin(), valeurs.end(), 0);
+
+    if (ordreAleatoire) {
+        mt19937 generateur(42);
+        shuffle(valeurs.begin(), valeurs.end(), generateur);
+    }
+
+    vector<int> vecteurTrie;
+    vecteurTrie.reserve(taille);
+
+    auto debutConstructionVecteur = chrono::steady_clock::now();
+    vecteurTrie = valeurs;
+    sort(vecteurTrie.begin(), vecteurTrie.end());
+    auto finConstructionVecteur = chrono::steady_clock::now();
+
+    map<int, bool> dictionnaire;
+    auto debutConstructionMap = chrono::steady_clock::now();
+    for (int valeur : valeurs) {
+        dictionnaire.emplace(valeur, true);
+    }
+    auto finConstructionMap = chrono::steady_clock::now();
+
+    int valeursTrouveesVecteur = 0;
+    auto debutRechercheBinaire = chrono::steady_clock::now();
+    for (int valeur : valeurs) {
+        if (binary_search(vecteurTrie.begin(), vecteurTrie.end(), valeur)) {
+            ++valeursTrouveesVecteur;
+        }
+    }
+    auto finRechercheBinaire = chrono::steady_clock::now();
+
+    int valeursTrouveesMap = 0;
+    auto debutRechercheMap = chrono::steady_clock::now();
+    for (int valeur : valeurs) {
+        if (dictionnaire.find(valeur) != dictionnaire.end()) {
+            ++valeursTrouveesMap;
+        }
+    }
+    auto finRechercheMap = chrono::steady_clock::now();
+
+    const chrono::duration<double, milli> constructionVecteur =
+        finConstructionVecteur - debutConstructionVecteur;
+    const chrono::duration<double, milli> constructionMap =
+        finConstructionMap - debutConstructionMap;
+    const chrono::duration<double, milli> rechercheBinaire =
+        finRechercheBinaire - debutRechercheBinaire;
+    const chrono::duration<double, milli> rechercheMap =
+        finRechercheMap - debutRechercheMap;
+
+    cout << fixed << setprecision(3);
+    cout << "\n--- Comparaison recherche binaire / std::map ---\n";
+    cout << "Taille : " << taille << " valeurs\n";
+    cout << "Ordre d'insertion : "
+         << (ordreAleatoire ? "aleatoire" : "croissant") << "\n";
+    cout << "Vecteur trie - construction et tri : "
+         << constructionVecteur.count() << " ms\n";
+    cout << "std::map - construction : "
+         << constructionMap.count() << " ms\n";
+    cout << "Recherche binaire - valeurs trouvees : "
+         << valeursTrouveesVecteur << " / " << taille << "\n";
+    cout << "Recherche binaire - temps total : "
+         << rechercheBinaire.count() << " ms\n";
+    cout << "std::map - valeurs trouvees : "
+         << valeursTrouveesMap << " / " << taille << "\n";
+    cout << "std::map - temps total de recherche : "
+         << rechercheMap.count() << " ms\n";
+}
+
 int main() {
     Noeud* racine = nullptr;
     int choix;
@@ -183,6 +255,7 @@ int main() {
         cout << "1. Inserer une valeur\n";
         cout << "2. Afficher l'arbre (ordre croissant)\n";
         cout << "3. Tester les performances\n";
+        cout << "4. Comparer recherche binaire et std::map\n";
         cout << "0. Quitter\n";
         cout << "Votre choix : ";
 
@@ -223,6 +296,27 @@ int main() {
                     libererArbre(racine);
                     return 1;
                 }
+                break;
+            }
+
+            case 4: {
+                int ordre;
+                int taille;
+                cout << "Ordre des valeurs (1. Croissant, 2. Aleatoire) : ";
+                if (!(cin >> ordre) || (ordre != 1 && ordre != 2)) {
+                    cout << "Choix invalide : entrez 1 ou 2.\n";
+                    libererArbre(racine);
+                    return 1;
+                }
+
+                cout << "Nombre de valeurs a tester : ";
+                if (!(cin >> taille) || taille <= 0) {
+                    cout << "Saisie invalide : entrez un entier positif.\n";
+                    libererArbre(racine);
+                    return 1;
+                }
+
+                comparerRecherches(taille, ordre == 2);
                 break;
             }
 
