@@ -1,0 +1,133 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage[margin=1.35cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{pgfplots}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+\definecolor{bleu}{HTML}{1557A0}
+\definecolor{bleuclair}{HTML}{EAF2FB}
+\pgfplotsset{compat=1.18}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\titleformat{\section}{\large\bfseries\color{bleu}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{bleu}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{7pt}{3pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries\color{bleu} Benchmark d'un arbre de recherche binaire}\\[-1pt]
+    {\large Insertion, recherche et suppression}\\[2pt]
+    {\normalsize ERRAMI Youssef \quad -- \quad C++}
+\end{center}
+\vspace{-4pt}
+\hrule
+
+\section{Objectif}
+Mesurer le temps total nécessaire pour insérer, rechercher et supprimer
+$n$ valeurs dans un arbre de recherche binaire (ABR), puis comparer les
+résultats pour différentes tailles d'entrée.
+
+\section{Configuration matérielle}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}>{\bfseries}p{3.1cm}p{12.2cm}@{}}
+Ordinateur & MSI Stealth GS66 12UGS\\
+Processeur & Intel Core i7-12700H, 14 cœurs\\
+Carte graphique & NVIDIA GeForce RTX 3070 Ti\\
+Mémoire vive & 16 Go DDR5\\
+\end{tabular}
+
+\section{Méthodologie}
+Pour chaque taille $n$, le programme crée les entiers de $0$ à $n-1$,
+puis les mélange avant de les insérer. Il chronomètre successivement
+l'insertion des $n$ valeurs, la recherche de ces mêmes valeurs (recherches
+réussies) et leur suppression. Les durées affichées sont des temps totaux
+en millisecondes. L'arbre du test est temporaire et son affichage trié est
+enregistré dans \texttt{output.txt}.
+
+\textbf{\color{bleu}Protocole conseillé :} exécuter le test pour
+$n=1\,000$, $5\,000$, $10\,000$, $50\,000$ et $100\,000$. Pour chaque
+taille, reporter les trois temps affichés dans les graphiques ci-dessous.
+Les zéros sont des champs à remplacer par les mesures réelles ; aucun
+résultat n'est inventé dans ce rapport.
+
+\section{Résultats expérimentaux}
+\begin{center}
+\small
+\begin{minipage}{0.32\textwidth}
+\centering\textbf{Insertion}\\[-2pt]
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,height=4.5cm,
+    xlabel={Nombre de valeurs},ylabel={Temps (ms)},
+    symbolic x coords={1k,5k,10k,50k,100k}, xtick=data,
+    x tick label style={font=\scriptsize,rotate=35,anchor=east},
+    y tick label style={font=\scriptsize},
+    label style={font=\scriptsize}, grid=major,
+    grid style={bleuclair}, tick style={bleu},
+    every axis plot/.append style={very thick,bleu,mark=*}
+]
+\addplot coordinates {(1k,0) (5k,0) (10k,0) (50k,0) (100k,0)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+\centering\textbf{Recherche}\\[-2pt]
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,height=4.5cm,
+    xlabel={Nombre de valeurs},ylabel={Temps (ms)},
+    symbolic x coords={1k,5k,10k,50k,100k}, xtick=data,
+    x tick label style={font=\scriptsize,rotate=35,anchor=east},
+    y tick label style={font=\scriptsize},
+    label style={font=\scriptsize}, grid=major,
+    grid style={bleuclair}, tick style={bleu},
+    every axis plot/.append style={very thick,bleu,mark=square*}
+]
+\addplot coordinates {(1k,0) (5k,0) (10k,0) (50k,0) (100k,0)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+\centering\textbf{Suppression}\\[-2pt]
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,height=4.5cm,
+    xlabel={Nombre de valeurs},ylabel={Temps (ms)},
+    symbolic x coords={1k,5k,10k,50k,100k}, xtick=data,
+    x tick label style={font=\scriptsize,rotate=35,anchor=east},
+    y tick label style={font=\scriptsize},
+    label style={font=\scriptsize}, grid=major,
+    grid style=bleuclair, tick style={bleu},
+    every axis plot/.append style={very thick,bleu,mark=triangle*}
+]
+\addplot coordinates {(1k,0) (5k,0) (10k,0) (50k,0) (100k,0)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\end{center}
+
+\section{Interprétation}
+Compléter les graphiques avec les mesures obtenues, puis comparer
+l'évolution des trois temps lorsque $n$ augmente. La hauteur de l'ABR
+influence directement les opérations : un arbre équilibré donne en moyenne
+des parcours de l'ordre de $\log(n)$, tandis qu'un arbre très déséquilibré
+peut nécessiter jusqu'à $n$ étapes. Les valeurs sont mélangées dans ce test,
+mais le résultat dépend aussi de l'ordre aléatoire généré.
+
+\vspace{2pt}
+\colorbox{bleuclair}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
+\textbf{\color{bleu}Compilation :} \texttt{g++ -std=c++17 -O2 arbre\_recherche\_binaire.cpp -o arbre.exe}
+\quad
+\textbf{\color{bleu}Exécution :} \texttt{.\textbackslash arbre.exe}}}
+
+\end{document}
